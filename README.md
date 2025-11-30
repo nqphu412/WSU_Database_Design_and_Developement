@@ -35,15 +35,16 @@ This project was submitted as the final assessment for the Database Design & Dev
 
 ### Schema Design
 - **Tables**
-  - Staff
+  - Staff (including both non-therapist, for example, manager and receptionist; and therapist staffs)
   - Client  
-  - Service  
+  - Service (with price with type of service, for example, time-based and item-based)
   - TimeService (containing both qualified staff ID and the service ID with duration time)
   - Booking (save client information with their prefered timeslot)
   - Therapy (table assigning booking ID to staff ID)  
 
 - **Key Result**
-  - Fully normalized relational schema supporting booking and scheduling operations
+  - Normalized relational schema supporting booking and scheduling operations
+  - Limitation: Assigning non-qualified therapist to perform a time-based service or Booking-staff allow client to book overlapping timeslot (shown in the code snippet)
 
 ---
 
@@ -52,17 +53,21 @@ This project was submitted as the final assessment for the Database Design & Dev
   - Check available staff for a service/time  
   - Retrieve service price list  
   - View upcoming appointments  
-  - Customer booking history  
-  - Conflict detection  
+  - Customer booking history   
   - Staff specialization lookup  
 
 - **Example**
 ```sql
-SELECT s.name, a.appointment_time
-FROM Staff s
-JOIN Appointments a ON s.staff_id = a.staff_id
-WHERE a.appointment_date = '2025-01-15'
-  AND s.staff_id = 4;
+-- Extra: Calculate total price for each therapy booking
+SELECT b.bookingID, type, duration, quantityItemUsed, itemPrice, timePrice,
+	CASE 
+        WHEN type = 'Item-based' THEN quantityItemUsed*itemPrice
+        WHEN type = 'Time-based' THEN duration*timePrice/60
+    END AS TotalCost
+FROM Beauty_Booking b
+JOIN Beauty_Therapy t ON b.bookingID = t.bookingID
+LEFT JOIN Beauty_Service s ON b.serviceID = s.serviceID
+LEFT JOIN Beauty_TimeService ts ON ts.qualifiedStaffID = t.performStaffID AND ts.serviceID = b.serviceID;
 ```
 
 ---
